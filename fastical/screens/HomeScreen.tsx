@@ -1,17 +1,20 @@
 import * as React from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-
-// This is a mock value. In a real app, you'd get this from a state management solution.
-const MOCK_FAST_END_TIME = new Date(Date.now() + 16 * 60 * 60 * 1000); // 16 hours from now
+import { FastingContext } from '../context/FastingContext';
 
 export default function HomeScreen() {
+  const { fastEndTime } = React.useContext(FastingContext);
   const [timeLeft, setTimeLeft] = React.useState('');
 
   useFocusEffect(
     React.useCallback(() => {
+      if (!fastEndTime) {
+        return;
+      }
+
       const calculateTimeLeft = () => {
-        const difference = MOCK_FAST_END_TIME.getTime() - new Date().getTime();
+        const difference = fastEndTime.getTime() - new Date().getTime();
         let timeLeft = {};
 
         if (difference > 0) {
@@ -35,13 +38,13 @@ export default function HomeScreen() {
       }, 1000);
 
       return () => clearInterval(timer);
-    }, [])
+    }, [fastEndTime])
   );
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Next Fast Ends In</Text>
-      <Text style={styles.timer}>{timeLeft}</Text>
+      <Text style={styles.timer}>{timeLeft || '00:00:00'}</Text>
     </View>
   );
 }

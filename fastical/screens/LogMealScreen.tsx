@@ -1,44 +1,50 @@
 import * as React from 'react';
 import { Text, View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { FastingContext } from '../context/FastingContext';
 
 export default function LogMealScreen() {
   const [description, setDescription] = React.useState('');
   const [calories, setCalories] = React.useState('');
+  const { setFastEndTime } = React.useContext(FastingContext);
 
   const handleLogMeal = async () => {
     try {
-      // Mock API call to log the meal
-      console.log('Logging meal:', { description, calories });
-      // const response = await fetch('http://localhost:3000/meals', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     description,
-      //     calories: parseInt(calories),
-      //   }),
-      // });
-      // const meal = await response.json();
+      const response = await fetch('http://localhost:3000/meals', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description,
+          calories: parseInt(calories),
+        }),
+      });
 
-      // Mock API call to calculate fast hours
-      console.log('Calculating fast hours...');
-      // const fastHoursResponse = await fetch('http://localhost:3000/fast-hours', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify({
-      //     calories: parseInt(calories),
-      //     // Assuming a TDEE of 2000 for now
-      //     tdee: 2000,
-      //   }),
-      // });
-      // const fastHoursData = await fastHoursResponse.json();
+      if (!response.ok) {
+        throw new Error('Failed to log meal');
+      }
 
-      // Mocked data
-      const fastHoursData = { fastHours: 24 * (parseInt(calories) / 2000) };
+      const fastHoursResponse = await fetch('http://localhost:3000/fast-hours', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          calories: parseInt(calories),
+          // Assuming a TDEE of 2000 for now
+          tdee: 2000,
+        }),
+      });
 
+      if (!fastHoursResponse.ok) {
+        throw new Error('Failed to calculate fast hours');
+      }
+
+      const fastHoursData = await fastHoursResponse.json();
+      const newFastEndTime = new Date(
+        Date.now() + fastHoursData.fastHours * 60 * 60 * 1000
+      );
+      setFastEndTime(newFastEndTime);
 
       Alert.alert(
         'Meal Logged!',
