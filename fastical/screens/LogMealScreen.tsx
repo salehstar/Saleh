@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { Text, View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { FastingContext } from '../context/FastingContext';
 
 export default function LogMealScreen() {
   const [description, setDescription] = React.useState('');
   const [calories, setCalories] = React.useState('');
-  const { setFastEndTime } = React.useContext(FastingContext);
+  const { fastEndTime, setFastEndTime } = React.useContext(FastingContext);
 
   const handleLogMeal = async () => {
     try {
@@ -41,9 +41,12 @@ export default function LogMealScreen() {
       }
 
       const fastHoursData = await fastHoursResponse.json();
-      const newFastEndTime = new Date(
-        Date.now() + fastHoursData.fastHours * 60 * 60 * 1000
-      );
+      const newFastDuration = fastHoursData.fastHours * 60 * 60 * 1000;
+
+      const newFastEndTime = fastEndTime
+        ? new Date(fastEndTime.getTime() + newFastDuration)
+        : new Date(Date.now() + newFastDuration);
+
       setFastEndTime(newFastEndTime);
 
       Alert.alert(
@@ -58,6 +61,7 @@ export default function LogMealScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Log a Meal</Text>
       <Text style={styles.label}>Meal Description</Text>
       <TextInput
         style={styles.input}
@@ -73,7 +77,9 @@ export default function LogMealScreen() {
         placeholder="e.g., 500"
         keyboardType="numeric"
       />
-      <Button title="Log Meal" onPress={handleLogMeal} />
+      <TouchableOpacity style={styles.button} onPress={handleLogMeal}>
+        <Text style={styles.buttonText}>Log Meal</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -82,10 +88,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#fff',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
+    color: '#333',
   },
   input: {
     borderWidth: 1,
@@ -93,5 +107,17 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 20,
     borderRadius: 5,
+    backgroundColor: '#f9f9f9',
+  },
+  button: {
+    backgroundColor: '#3B82F6',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
